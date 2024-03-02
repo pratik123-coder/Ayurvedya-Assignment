@@ -2,6 +2,7 @@ import React, { ReactNode, useState } from 'react';
 import StarRating from './starrating';
 import ThumbsRating from './thumbsrating';
 import Praise from './praise';
+import { toast } from "sonner";
 
 interface ModalProps {
   isOpen: boolean;
@@ -31,13 +32,34 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
     setSelectedPraise(word === selectedPraise ? null : word);
   };
 
-  const handleSubmit = () => {
-    console.log('Safety Rating:', safetyRating);
-    console.log('Communication Rating:', communicationRating);
-    console.log('Recommend Rating:', recommendRating);
-    console.log('Selected Praise:', selectedPraise);
+  const handleSubmit = async () => {
+    try {
+      const values = {
+        safetyRating,
+        communicationRating,
+        recommendRating,
+        selectedPraise,
+      };
 
-    onClose();
+      const res = await fetch("/api/review", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        toast.error(data.message);
+      } else {
+        toast.success(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Unknown error occurred");
+    }
   };
 
   if (!isOpen) return null;
